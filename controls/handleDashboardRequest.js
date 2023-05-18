@@ -19,6 +19,7 @@ let calcTotalDonations = (donations) => {
 let handleDashboardRequest = (db) => (req, res) => {
     const { email } = req.body
     getDocs(collection(db, email))
+    console.log('received dashboard request')
     .then((querySnapshot)=>{
         
         querySnapshot.forEach((doc)=>{
@@ -43,6 +44,7 @@ let handleDashboardRequest = (db) => (req, res) => {
                     monthlyAverage : monthlyAverage,
                     averageDonation : averageDonation
                 }
+
                 res.json(response)
             }
         })       

@@ -39,8 +39,6 @@ app.use(cors())
 app.use(bodyParser.json({ type: 'application/json' }))
 app.use(bodyParser.text({ type: 'text/plain' }))
 
-object = {March22:[{name:'jane', id:'123123'},{name:'jake', id:'123345'},{name:'jason', id:'1234141'}]}
-
 
 
 //Create Account
