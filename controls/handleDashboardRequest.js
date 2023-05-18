@@ -29,7 +29,7 @@ let handleDashboardRequest = (db) => (req, res) => {
                 delete donations.initialize
                 donationMonths = Object.keys(donations)
                 totalDonations = calcTotalDonations(donations)
-                monthlyAverage = totalDonations/donationMonths.length
+                monthlyAverage = Math.round((totalDonations/donationMonths.length)*100)/100
                 
 
             } else if (doc.id==='donors') {
@@ -37,7 +37,7 @@ let handleDashboardRequest = (db) => (req, res) => {
                 delete donors.initialize
                 donorIDs = Object.keys(donors)
                 totalDonors = donorIDs.length
-                averageDonation = monthlyAverage/totalDonors
+                averageDonation = Math.round((monthlyAverage/totalDonors)*100)/100
                 response = {
                     donationMonths : donationMonths,
                     totalDonors : totalDonors,
