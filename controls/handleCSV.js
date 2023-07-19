@@ -1,22 +1,27 @@
 const monthNameFromGiftDate = require('./monthNameFromGiftDate');
+const prompt = require('prompt-sync')();
 
 const {
     doc,
+    getDoc,
     updateDoc,
 } = require('firebase/firestore')
 
 let handleCSV = (db) => (req, res) => {
+    console.log('received CSV')
+
     const data = req.body
 	const email = req.headers.email
+    
     array1 = data.split('\n')
 	let designationcode = array1[1].split('","')[11]
     let giftDate = array1[1].split('","')[9]
     
-
     var monthName = monthNameFromGiftDate(giftDate)
 	array2 = []
     donationsArray=[]
     var donorsObject={}
+    const CSVDonorCodes = []
 	for (let x in array1) {
 		let row = array1[x].split('","')
 		array2.push(row)
@@ -35,6 +40,7 @@ let handleCSV = (db) => (req, res) => {
                         address : row[2]+row2[0],
                         phone : row2[4],
                     }
+                    CSVDonorCodes.push(donorsObject[key].donorcode)
                     donationsArray.push({
                         donorcode : row[0].replace('"',''),
                         donorname : row[1],
@@ -61,6 +67,7 @@ let handleCSV = (db) => (req, res) => {
                     address : row[2],
                     phone : row[6],
                 }
+                CSVDonorCodes.push(donorsObject[key].donorcode)
                 donationsArray.push({
                     donorcode : row[0].replace('"',''),
                     donorname : row[1],
@@ -79,16 +86,48 @@ let handleCSV = (db) => (req, res) => {
 			}
 		}
     }
-    // setDoc(doc(db, "kmgothman@gmail.com", "donations"), {"january23": donationsArray});
     var donationsObject = {};
-
     donationsObject[monthName] = donationsArray;
 
-    docRef = doc(db, email, "donations");
-    updateDoc(docRef, donationsObject)
-    docRef = doc(db, email, "donors");
-    updateDoc(docRef, donorsObject)
-    res.json('received request')
+    //grab contacts then see which donors dont have a donor code
+    let docRef1 = doc(db, email, "contacts");
+    const docSnap = getDoc(docRef1)
+    .then((docSnap)=>{
+        let contacts = docSnap.data()
+        newContactsObject = {}
+        if (contacts) {
+            names = Object.keys(contacts)
+            let existingDonorCodes = []
+            names.map((name)=>{
+                if (contacts[name].donorcode) {
+                    existingDonorCodes.push(contacts[name].donorcode)
+                }
+            })
+            let newDonorCodes = CSVDonorCodes.filter(element => !existingDonorCodes.includes(element))
+            newDonorCodes.map((code)=>{
+                let name = donorsObject[code].name
+                newContactsObject[name]=donorsObject[code]
+            })
+        } else {
+            donorCodes = Object.keys(donorsObject)
+            donorCodes.map((code)=>{
+                let name = donorsObject[code].name
+                newContactsObject[name]=donorsObject[code]
+            })
+            contacts = {}
+        }
+        
+        docRef = doc(db, email, "donations");
+        updateDoc(docRef, donationsObject)
+        let responseObject = {
+            existingContacts:contacts,
+            newContacts:newContactsObject
+        }
+        res.json(responseObject)
+        
+    }
+    )
+
 }
 
 module.exports = handleCSV

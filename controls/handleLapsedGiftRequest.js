@@ -58,13 +58,19 @@ const checkForGapInLoggedGifts = (donationMonths) => {
         if (x===100) {break}
     }
     let loggedGiftsSet = new Set(yyyymmArray)
-    missingGifts=loggedGiftSpan.filter(x => !loggedGiftsSet.has(x))
-
+    missingGiftsyyyymm=loggedGiftSpan.filter(x => !loggedGiftsSet.has(x))
+    missingGifts=[]
+    missingGiftsyyyymm.map((gift)=>{
+        yyyy=gift.slice(0,4)
+        mm = Number(gift.slice(4))
+        monthName = months[mm] +' '+ String(yyyy)
+        missingGifts.push(monthName)
+    })
     return missingGifts
 
  }
 
-const checkForLapsedGifts = (donorCodes,donations,donationMonths) => {
+const checkForLapsedGifts = (donorNames,donations,donationMonths,contacts) => {
     let months = ['','January','February','March','April','May','June','July','August','September','October','November','December']
     yyyymmArray=[]
     donationMonths.map((x)=>{
@@ -74,13 +80,14 @@ const checkForLapsedGifts = (donorCodes,donations,donationMonths) => {
         yyyymmArray.push(yyyy+mm)
     })
 
-    const lapsedDonorCodes = []
-    donorCodes.map((donorcode)=>{
+    const lapsedDonors = []
+    donorNames.map((donorName)=>{
         dateArray = []
+        giftMonths=[]
 
         donationMonths.map((donationMonth)=>{
             donations[donationMonth].map((donation)=>{
-                if (donation.donorcode === donorcode) {
+                if (donation.donorname === donorName) {
                     //"2/28/2023 12:00:00 AM"
                     date = donation.giftdate.split(' ')[0]
                     mySplit = date.split('/')
@@ -89,6 +96,7 @@ const checkForLapsedGifts = (donorCodes,donations,donationMonths) => {
                     if (mm.length === 1) {mm='0'+mm}
 
                     dateArray.push(yyyy+mm)
+                    giftMonths.push(months[Number(mm)] +' '+ String(yyyy))
                 }
             })
         })
@@ -97,40 +105,60 @@ const checkForLapsedGifts = (donorCodes,donations,donationMonths) => {
         let secondLastMonth = yyyymmArray[yyyymmArray.length-2]
 
         if (dateArray[dateArray.length-1] != lastLoggedMonth && dateArray[dateArray.length-1] != secondLastMonth){
-            lapsedDonorCodes.push(donorcode)
+            donorsLastMonth = dateArray[dateArray.length-1]
+            yyyy=donorsLastMonth.slice(0,4)
+            mm = Number(donorsLastMonth.slice(4))
+            
+            monthName = months[mm] +' '+ String(yyyy)
+            donorObject = contacts[donorName]
+            donorObject['donorsLastMonth']=monthName
+            donorObject['giftMonths']=giftMonths
+            lapsedDonors.push(donorObject)
         }
 
     })
-    return lapsedDonorCodes
+    return lapsedDonors
     }
+
+const getDonorNamesFromContacts = (contacts) => {
+    donorNames = []
+    contactNames = Object.keys(contacts)
+    contactNames.map((name)=>{
+        if (contacts[name].donorcode) {
+            donorNames.push(name)
+        }
+    })
+    return donorNames
+}
 
 
 let handleLapsedGiftRequest = (db) => (req, res) => {
     const { email } = req.body
     getDocs(collection(db, email))
     .then((querySnapshot)=>{
-        
+        const response = {}
+        const contactObject = {}
         querySnapshot.forEach((doc)=>{
             if (doc.id==='donations') {
-                donations=doc.data()
+                let donations=doc.data()
                 delete donations.initialize
-                donationMonths = sortMonthNames(Object.keys(donations))
+                let donationMonths = sortMonthNames(Object.keys(donations))
                 missingGifts = checkForGapInLoggedGifts(donationMonths)
-                
+                contactObject['donationMonths'] = donationMonths
+                contactObject['donations']=donations
+                response['missingGifts'] = missingGifts
 
-            } else if (doc.id==='donors') {
-                donors=doc.data()
-                delete donors.initialize
-                donorIDs = Object.keys(donors)
-                lapsedDonors = checkForLapsedGifts(donorIDs,donations,donationMonths)
-                
-                response = {
-                    missingGifts: missingGifts,
-                    lapsedDonors:lapsedDonors
-                }
-                res.json(response)
+            } else if (doc.id==='contacts') {
+                const contacts=doc.data()
+                delete contacts.initialize
+                contactObject['donorNames'] = getDonorNamesFromContacts(contacts)
+                contactObject['contacts']=contacts
             }
-        })       
+        })
+        let lapsedDonors = checkForLapsedGifts(contactObject.donorNames,contactObject.donations,contactObject.donationMonths,contactObject.contacts)
+
+        response['lapsedDonors'] = lapsedDonors
+        res.json(response)       
         })
 
 }

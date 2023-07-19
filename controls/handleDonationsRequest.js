@@ -25,7 +25,6 @@ const sortMonthNames = (unsortedMonthNames) => {
 }
 
 let handleDonationsRequest = (db) => (req, res) => {
-    console.log('received Donations Request')
     const email = req.body.email
     const docRef = doc(db, email , "donations");
     getDoc(docRef)

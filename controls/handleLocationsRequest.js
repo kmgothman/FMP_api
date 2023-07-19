@@ -8,32 +8,57 @@ let handleLocationsRequest = (db) => (req, res) => {
     const { email } = req.body
     getDocs(collection(db, email))
     .then((querySnapshot)=>{
-        
+        const donations = {}
+        const contacts = {}
         querySnapshot.forEach((doc)=>{
             if (doc.id==='donations') {
-                donations=doc.data()
-                delete donations.initialize
-                donationMonths = Object.keys(donations)
-                
-            } else if (doc.id==='donors') {
-                donors=doc.data()
-                delete donors.initialize
-                donorIDs = Object.keys(donors)
-                stateSums={}
-                donationMonths.map((monthName)=>{
-                    donations[monthName].map((donation)=>{
-                        amount = Number(donation.amount)
-                        donorcode = donation.donorcode
-                        state = donors[donorcode].state
-                        if (stateSums[state]) {
-                        stateSum = stateSums[state] + amount
-                        } else {stateSum = amount}
-                        stateSums[state] = stateSum
-                    })
+                const donationsVariable=doc.data()
+                delete donationsVariable.initialize
+                donationMonths = Object.keys(donationsVariable)
+                donationMonths.map((month)=>{
+                    donations[month]=donationsVariable[month]
                 })
-                res.json(stateSums)
+                
+                
+                
+            } else if (doc.id==='contacts') {
+                const contactsVariable=doc.data()
+                delete contactsVariable.initialize
+                contactNames = Object.keys(contactsVariable)
+                contactNames.map((name)=>{
+                    contacts[name]=contactsVariable[name]
+                })
+                
             }
-        })       
+        }) 
+        donationMonths = Object.keys(donations) 
+        const donors = {}
+        contactNames = Object.keys(contacts)
+        contactNames.map((name)=>{
+            if (contacts[name].donorcode) {
+                donors[name]=contacts[name]
+            }
+        })
+        stateSums={}
+        donationMonths.map((monthName)=>{
+            donations[monthName].map((donation)=>{
+                amount = Number(donation.amount)
+                donorname = donation.donorname
+                try {state = donors[donorname].state} 
+                catch (error) {console.log(error)}
+                
+                if (stateSums[state]) {
+                    stateSum = stateSums[state] + amount
+                } else {stateSum = amount}
+                    stateSums[state] = stateSum
+            })
+        })
+        let states = Object.keys(stateSums)
+        states.map((state)=>{
+            roundedNumber = Math.round(Number(stateSums[state]))
+            stateSums[state] = roundedNumber
+        })
+        res.json(stateSums)     
         })
 
 }
