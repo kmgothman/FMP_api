@@ -22,6 +22,7 @@ const handleCreateTaskRequest = require('./controls/handleCreateTaskRequest')
 const handleHistoryRequest = require('./controls/handleHistoryRequest')
 const { create } = require('domain');
 const handleContactsUpload = require('./controls/handleContactsUpload');
+const handleCompleteAllTasksRequest = require('./controls/handleCompleteAllTasksRequest')
 
 const firebaseConfig = {
     apiKey: "AIzaSyD4HayiLOlVvBFRLEpUOF66JeD_byNlvxg",
@@ -91,6 +92,8 @@ app.post('/lapsedgift', handleLapsedGiftRequest(db))
 
 //states
 app.post('/locations', handleLocationsRequest(db))
+
+app.post('/completeAllTasks', handleCompleteAllTasksRequest(db))
 
 app.listen(3000, ()=> {
 	console.log('app is running on port 3000')
