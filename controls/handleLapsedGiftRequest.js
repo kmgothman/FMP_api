@@ -134,6 +134,7 @@ const getDonorNamesFromContacts = (contacts) => {
 
 let handleLapsedGiftRequest = (db) => (req, res) => {
     const { email } = req.body
+    try {
     getDocs(collection(db, email))
     .then((querySnapshot)=>{
         const response = {}
@@ -160,7 +161,9 @@ let handleLapsedGiftRequest = (db) => (req, res) => {
         response['lapsedDonors'] = lapsedDonors
         res.json(response)       
         })
-
+    } catch (error) {
+        res.json(error)
+    }
 }
 
 module.exports = handleLapsedGiftRequest

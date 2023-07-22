@@ -15,9 +15,13 @@ let taskCompleteToggle = (db) => (req, res) => {
     updateObject = {}
     updateObject[id]=task
     updateObject[id].complete = !task.complete
+    try {
     updateDoc(docRef, updateObject)
 
     res.json('done')
+    } catch (error) {
+        res.json(error)
+    }
 }
 
 module.exports = taskCompleteToggle

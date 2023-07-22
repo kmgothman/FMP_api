@@ -29,8 +29,12 @@ let handleContactsUpload = (db) => (req, res) => {
     }
     }
     docRef = doc(db, email, "contacts");
+    try {
     updateDoc(docRef, contactsObject)
     res.json('received request')
+    } catch (error) {
+        res.json(error)
+    }
 }
 
 module.exports = handleContactsUpload

@@ -6,6 +6,7 @@ const {
 let handleTasksRequest = (db) => (req, res) => {
     const email = req.body.email
     const docRef = doc(db, email , "tasks");
+    try {
     getDoc(docRef)
     .then((docSnap) => {
     if (docSnap.exists()) {
@@ -25,6 +26,9 @@ let handleTasksRequest = (db) => (req, res) => {
         res.json({})
     }
     })
+} catch (error) {
+    res.json(error)
+}
 }
 
 module.exports = handleTasksRequest

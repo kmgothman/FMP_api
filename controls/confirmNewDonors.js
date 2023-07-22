@@ -11,10 +11,16 @@ let confirmNewDonors = (db) => (req, res) => {
     const { email } = req.body
 
     contactsRef = doc(db, email, "contacts");
-    updateDoc(contactsRef, contactsObject)
+    try{
+        updateDoc(contactsRef, contactsObject)
+    } catch (error) {
+        res.json(error)
+        return
+    }
 
     //add new tasks
     const docRef = doc(db, email , "tasks");
+    try {
     getDoc(docRef)
     .then((docSnap) => {
     if (docSnap.exists()) {
@@ -48,9 +54,13 @@ let confirmNewDonors = (db) => (req, res) => {
     })
     updateDoc(docRef,tasksObject)
     res.json('done')
-    })
-    
 
+    }) 
+} catch (error) {
+    res.json(error)
+}
+    
+    
 }
 
 module.exports = confirmNewDonors

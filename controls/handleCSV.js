@@ -91,6 +91,7 @@ let handleCSV = (db) => (req, res) => {
 
     //grab contacts then see which donors dont have a donor code
     let docRef1 = doc(db, email, "contacts");
+    try {
     const docSnap = getDoc(docRef1)
     .then((docSnap)=>{
         let contacts = docSnap.data()
@@ -127,6 +128,9 @@ let handleCSV = (db) => (req, res) => {
         
     }
     )
+} catch (error) {
+    res.json(error)
+}
 
 }
 

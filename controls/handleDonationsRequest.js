@@ -27,6 +27,7 @@ const sortMonthNames = (unsortedMonthNames) => {
 let handleDonationsRequest = (db) => (req, res) => {
     const email = req.body.email
     const docRef = doc(db, email , "donations");
+    try {
     getDoc(docRef)
     .then((docSnap) => {
     if (docSnap.exists()) {
@@ -53,19 +54,15 @@ let handleDonationsRequest = (db) => (req, res) => {
         }
 
         res.json(responseObject)
-        
 
-        //monthObjects = {
-            // 				monthNames: monthNames,
-            // 				donationMonths : set, 
-            // 				donations : donationsArray,
-            // 				donationSums: donationSums
-            
     } else {
     console.log("No such document!");
     res.json('no such object')
     }
     })
+} catch (error) {
+    res.json(error)
+}
 }
 
 module.exports = handleDonationsRequest

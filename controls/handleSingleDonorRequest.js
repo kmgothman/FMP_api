@@ -8,6 +8,7 @@ const {
 let handleSingleDonorRequest = (db) => (req, res) => {
     const { donorcode, email, name } = req.body
     const cRef = collection(db, email);
+    try { 
     getDocs(cRef)
     .then((snapshot) => {
         const data={} //contactinfo, tasks, history, donations
@@ -56,6 +57,9 @@ let handleSingleDonorRequest = (db) => (req, res) => {
         })
         res.json(data)
     })
+} catch (error) {
+    res.json(error)
+}
 }
 
 module.exports = handleSingleDonorRequest

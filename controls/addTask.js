@@ -1,7 +1,4 @@
-//grab tasks from firebase
-//sort them and grab the latest
-//+1
-//send to firebase
+
 const {
     doc,
     getDoc,
@@ -10,6 +7,7 @@ const {
 
 let addTask = (db, email, task) => {
     const docRef = doc(db, email , "tasks");
+    try {
     getDoc(docRef)
     .then((docSnap) => {
     if (docSnap.exists()) {
@@ -18,9 +16,7 @@ let addTask = (db, email, task) => {
         delete existingTasks.initialize;
         taskCodes=Object.keys(existingTasks)
         if(taskCodes.length) {
-            taskCodes.sort()
-            console.log(taskCodes)
-            newCode=Number(taskCodes[taskCodes.length-1])+1
+            newCode=taskCodes.length+1
         } else {
             newCode = 1
         }
@@ -34,6 +30,9 @@ let addTask = (db, email, task) => {
         updateDoc(docRef, updateObject)
     }
     })
+} catch (error) {
+    console.log(error)
+}
 }
 
 module.exports = addTask

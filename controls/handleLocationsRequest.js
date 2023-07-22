@@ -6,6 +6,7 @@ const {
 
 let handleLocationsRequest = (db) => (req, res) => {
     const { email } = req.body
+    try {
     getDocs(collection(db, email))
     .then((querySnapshot)=>{
         const donations = {}
@@ -60,7 +61,9 @@ let handleLocationsRequest = (db) => (req, res) => {
         })
         res.json(stateSums)     
         })
-
+    } catch (error) {
+        res.json(error)
+    }
 }
 
 module.exports = handleLocationsRequest
